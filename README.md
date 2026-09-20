@@ -35,6 +35,8 @@ npm run dev
 
 See the [implementation guide](docs/WEBGPU.md) for architecture, controls, detail placement, validation and limitations, and the [changelog](CHANGELOG.md) for the development history.
 
+Watch the [25-second demo](docs/media/skogafoss-twitter.mp4) and browse the [comparison gallery](docs/media/README.md) for the four skies, project evolution, GPU particle layer and landscape details.
+
 This branch adds a separate experiment at **`/webgpu.html`**. The original WebGL 2 scene remains at `/`; its About dialog links to the study. Both pages are included in the static production build. No additional packages, asset services or paid APIs are required.
 
 The study uses Three.js `WebGPURenderer` and TSL node materials for the landscape, continuous waterfall, river reflections, skies, rain and grass. Native WebGPU compute updates **24,576 particles** (12,288 on coarse-pointer devices) in resident position/velocity storage buffers. A fixed 1/120-second simulation step applies gravity, wind, terrain/water impacts, short splashes and a smaller drifting mist population. A sampled height field follows the rendered riverbed and front slope. Pause stops the simulation and all animated material clocks.
