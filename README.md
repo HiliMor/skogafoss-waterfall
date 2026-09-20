@@ -1,6 +1,6 @@
 # Skógafoss — Field Notes
 
-A working first study of Skógafoss: a procedural 3D landscape, animated waterfall and river, mist, rock detail, a lookout path and three camera positions. No generated background image or video is used; the landscape is rendered in real time.
+An interactive 3D interpretation of Skógafoss, Iceland: a flowing waterfall, a reflective river, moss-covered cliffs and a broader valley and highland landscape. All views are rendered in real time and can be explored with the camera.
 
 ## Run
 
@@ -11,30 +11,39 @@ npm ci
 npm run dev
 ```
 
-`npm run build` creates `dist/`, which can be hosted as a static site. `npm run preview` serves that production build locally.
+`npm run build` creates `dist/`, ready for a static web host. `npm run preview` serves the production build locally. For a subdirectory deployment, pass the base path, for example `npm run build -- --base=/skogafoss-waterfall/`.
+
+## What's in the scene
+
+- A detailed valley around the fall, extended into several kilometres of composed landscape: a winding upper river, broad meadows and distant highlands.
+- Photographic rock, turf and gravel textures, including surface normals and roughness; triplanar mapping and varying texture offsets soften visible repetition.
+- Instanced cliff fragments, boulders, thousands of pebbles, wind-animated grass, a staircase, lookout and hikers for scale.
+- A moving waterfall curtain, droplets and drifting spray, with live planar reflections and foam in the lower river.
+- Four camera viewpoints: Approach, Riverbed, Highlands and Valley.
+- A photographed HDR sky used for both the background and environmental light.
 
 ## Controls
 
-- Drag to orbit; wheel/pinch to zoom.
-- Viewpoint buttons or keys 1–3 select views.
-- H returns to the approach. Space pauses or resumes water animation.
-- Sound is opt-in, synthesized locally with the Web Audio API.
-- Reduced-motion preferences start the water paused and disable camera transitions.
+- Drag to orbit; wheel/pinch to zoom. Right-drag or two-finger drag to pan.
+- Viewpoint buttons or keys 1–4 select views. H returns to the approach.
+- Space pauses or resumes water, mist and vegetation motion.
+- Sound is opt-in and synthesized locally with the Web Audio API.
+- Reduced-motion preferences start the scene paused and disable camera transitions.
+- Coarse-pointer devices use fewer instances, a smaller reflection target and a lower pixel ratio.
 
 ## Source files
 
-- `src/nature.js`: terrain, procedural surface detail, instanced stones/grass, stairs and tiny hikers.
-- `src/water.js`: waterfall, flow, droplets and mist shaders.
-- `src/main.js`: camera, lighting, sky, interaction and ambient audio.
-- `src/style.css`: responsive editorial interface.
+- `src/nature.js`: terrain height functions, instanced details, staircase and hikers.
+- `src/materials.js`: local asset loading and blended triplanar PBR materials.
+- `src/water.js`: waterfall, river reflection, foam, droplets and mist.
+- `src/main.js`: camera, lighting, interaction and ambient audio.
+- `src/style.css`: responsive interface.
+- [ASSETS.md](ASSETS.md): asset authors, licenses and sources.
 
 ## Reference and scope
 
-Approximate waterfall dimensions: 60 m high and 25 m wide.
+Approximate waterfall dimensions: 60 m high and 25 m wide, referenced from [Visit South Iceland](https://www.south.is/en/place/skogafoss-waterfall).
 
-- [Visit South Iceland — Skógafoss](https://www.south.is/en/place/skogafoss-waterfall)
-- [Visit South Iceland — South coast waterfalls](https://www.south.is/en/travel-info/newsblog/best-waterfalls-in-south-iceland)
+This is an artistic reconstruction, not surveyed terrain or photogrammetry. Rock positions, the winding rivers, wider topography, stairs and camera framing are composed approximations. The CC0 photographic materials are general rock and vegetation samples, not location-specific scans. The scene has one lighting setup; it is not a weather or walking simulation.
 
-This is an artistic reconstruction, not a surveyed terrain model or photogrammetry. Rock positions, terrain beyond the fall, the path and camera framing are composed approximations. The stairs and people are simplified scale references. This version concentrates on a single lit scene; no weather system or walking simulation is included.
-
-All scene geometry and shaders were created for this project. UI typefaces: DM Sans and Libre Caslon Display, delivered through Google Fonts with local serif/sans-serif fallbacks. Three.js and Vite are pinned in package-lock.json.
+The production build and all four viewpoints were checked in the desktop browser, with a narrow viewport check for the mobile interface. Actual phone GPU performance is not yet profiled. The scene requires WebGL 2. Texture assets are approximately 8.8 MB, loaded locally before the opening frame; no asset API key or paid service is required. Google Fonts is optional and has fallback fonts.
