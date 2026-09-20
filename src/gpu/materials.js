@@ -18,10 +18,14 @@ export function terrainNodeMaterial(assets,gravel=false,weather){
     return vec3(0,x.y,x.x).mul(weights.x).add(vec3(y.x,0,y.y).mul(weights.y)).add(vec3(z.x,z.y,0).mul(weights.z));
   };
   const rockP=positionWorld.mul(gravel?.30:.14),turfP=positionWorld.mul(.061);
-  const cover=smoothstep(.08,.9,attribute('aCover','float'));
+  const meadow=noise2(positionWorld.xz.mul(.028).add(positionWorld.y.mul(.012)));
+  const dampPatch=noise2(positionWorld.xz.mul(.16).add(19));
+  const cover=smoothstep(.08,.9,attribute('aCover','float')).mul(float(1).sub(smoothstep(.69,.86,meadow).mul(.18)));
   const wet=attribute('aWetness','float').add(weather.wetness.mul(.6)).clamp();
   const rock=tri(assets[`${base}-color`],rockP).mul(new Color(gravel?'#818c91':'#aaaeb1'));
-  const turf=tri(assets['aerial_grass_rock-color'],turfP).mul(vec3(.51,.90,.44));
+  const meadowTint=mix(vec3(.38,.63,.26),vec3(.72,.90,.44),smoothstep(.22,.76,meadow));
+  const turf=tri(assets['aerial_grass_rock-color'],turfP).mul(meadowTint)
+    .mul(mix(.81,1.09,dampPatch)).mul(noise2(positionWorld.xz.mul(12)).mul(.14).add(.94));
   const arm=mix(tri(assets[`${base}-arm`],rockP),tri(assets['aerial_grass_rock-arm'],turfP),cover);
   material.colorNode=mix(rock,turf,cover).mul(noise2(positionWorld.xz.mul(.07).add(positionWorld.y.mul(.1))).mul(.32).add(.8)).mul(mix(.72,1,arm.r)).mul(float(1).sub(wet.mul(.37)));
   material.roughnessNode=clamp(arm.g.mul(.94).sub(wet.mul(.26)),.25,1);

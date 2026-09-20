@@ -1,10 +1,10 @@
 import * as THREE from 'three/webgpu';
-import { Fn, uv, positionLocal, positionWorld, cameraPosition, uniform, vec2, vec3, vec4, float, mix, smoothstep, sin, sqrt, exp, normalize, dot, reflector, reflect } from 'three/tsl';
+import { Fn, uv, positionLocal, positionWorld, cameraPosition, uniform, vec2, vec3, vec4, float, texture, mix, smoothstep, sin, sqrt, exp, normalize, dot, reflector, reflect } from 'three/tsl';
 import { surface,riverCenter,riverWidth,upperRiverCenter,upperRiverHeight,upperRiverWidth } from '../nature.js';
 import { waterfallPoint } from '../water.js';
 import { fbm2,noise2 } from './noise.js';
 
-export function createGPUWater(scene,quality,weather,time){
+export function createGPUWater(scene,quality,weather,time,assets){
   const tint=weather.lightColor.mul(weather.light);
   const upperColor=Fn(([p,t])=>{
     const n=fbm2(vec2(p.x.mul(.6),p.y.mul(.43).sub(t.mul(2.2))));
@@ -72,7 +72,11 @@ export function createGPUWater(scene,quality,weather,time){
     const impact=smoothstep(8,34,p.sub(vec2(0,11)).mul(vec2(.8,1)).length()).oneMinus().mul(smoothstep(.29,.65,n));
     const bank=uv().x.mul(2).sub(1).abs().pow(15).mul(smoothstep(.52,.76,n)).mul(.45);
     const wake=smoothstep(24,160,p.y).oneMinus().mul(smoothstep(8,25,p.x.abs()).oneMinus()).mul(smoothstep(.69,.82,n)).mul(.44);
-    return mix(reflected,vec3(.65,.78,.83).mul(tint),impact.mul(.92).add(bank).add(wake).clamp(0,.95));
+    const shallows=smoothstep(.48,.98,uv().x.mul(2).sub(1).abs());
+    const gravel=texture(assets['river_small_rocks-color'],p.mul(.34)).rgb.mul(vec3(.34,.42,.34)).mul(weather.light);
+    const current=smoothstep(.70,.86,fbm2(vec2(p.x.mul(.8),p.y.mul(.075).sub(time.mul(.6))))).mul(smoothstep(24,55,p.y)).mul(.055);
+    const riverColor=mix(reflected,gravel.add(waterBase.mul(.5)),shallows.mul(.56));
+    return mix(riverColor,vec3(.65,.78,.83).mul(tint),impact.mul(.92).add(bank).add(wake).add(current).clamp(0,.95));
   })();
   scene.add(river);
   return {waterfall,river};

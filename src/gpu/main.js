@@ -11,6 +11,7 @@ import { terrainNodeMaterial,grassNodeMaterial } from './materials.js';
 import { uniform } from 'three/tsl';
 import { createGPUWeather } from './weather.js';
 import { attachLab } from './lab.js';
+import { createLandscapeDetails } from './details.js';
 
 const canvas=document.querySelector('#scene');
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -92,7 +93,8 @@ async function init(){
   for(let i=0;i<grass.count;i++)phases.push(grass.instanceMatrix.array[i*16+12]*.31+grass.instanceMatrix.array[i*16+14]*.18);
   grass.geometry.setAttribute('aGrassPhase',new THREE.InstancedBufferAttribute(new Float32Array(phases),1));
   grass.material.dispose();grass.material=grassNodeMaterial(sceneTime,weather.state.wind);
-  water=createGPUWater(scene,quality,weather.state,sceneTime);
+  createLandscapeDetails({scene,quality,surfaces:terrain.surfaces,assets,weather:weather.state,time:sceneTime});
+  water=createGPUWater(scene,quality,weather.state,sceneTime,assets);
   simulation=createSpraySimulation({scene,renderer,quality,weather:weather.state,time:sceneTime,surfaces:terrain.surfaces});
   lab=attachLab({simulation,canvas,isPaused:()=>paused,getView:()=>selected,getWeather:()=>weather.current});
   document.querySelector('#loading-message').textContent='Opening the clear sky…';
