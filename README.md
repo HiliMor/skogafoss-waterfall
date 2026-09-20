@@ -39,7 +39,7 @@ The study uses Three.js `WebGPURenderer` and TSL node materials for the landscap
 
 Open **Water study** to adjust wind, toggle the GPU spray, read back particle state or measure six seconds of frame timing. A readback reports the falling/splash/mist populations, height range and simulation step count; it also detects uninitialized, non-finite and escaped state. It runs only on request. The normal animation loop does not read particle buffers back to the CPU.
 
-The **WebGPU active** badge is set only after the native backend initializes. If WebGPU is unavailable, initialization fails or the device is lost, the page shows an explanation and a link to the original. The compute experiment does not silently fall back to WebGL. Serve over localhost or HTTPS in a browser/device combination with WebGPU support.
+The **WebGPU active** badge is set only after the native backend initializes. If WebGPU is unavailable, initialization fails or the device is lost, the page shows an explanation and a link to the original. The compute experiment does not silently fall back to WebGL. Serve over localhost or HTTPS in a browser/device combination with WebGPU support. Some embedded browsers defer adapter creation for background tabs; open the study in the foreground and use Try again if an initialization timeout appears.
 
 This is a hybrid artistic scene, **not a full fluid solver**: the main curtain is a continuous animated surface, droplets do not interact with one another, and collisions use a height field rather than the cliff/stair/rock meshes. TSL materials and reflection filtering differ from the original GLSL version, so visual parity is approximate. A WebGPU renderer alone does not guarantee better visuals or faster frames.
 

@@ -21,7 +21,7 @@ let selected='approach';
 const sceneTime=uniform(3);
 let simulation,lab,accumulator=0;
 
-function showError(message){document.querySelector('#error-message').textContent=message;document.querySelector('#error').hidden=false;document.querySelector('#loading').classList.add('done');}
+function showError(message){document.querySelector('#gpu-backend').textContent='Not running';document.querySelector('#error-message').textContent=message;document.querySelector('#error').hidden=false;document.querySelector('#loading').classList.add('done');}
 function setView(name,animate=true){
   const view=views[name];if(!view||!camera)return;
   selected=name;document.querySelector(`[data-view="${name}"]`)?.scrollIntoView({block:'nearest',inline:'nearest',behavior:reducedMotion?'instant':'smooth'});document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));
@@ -53,8 +53,21 @@ async function init(){
   if(!navigator.gpu)throw new Error('WebGPU is unavailable in this browser. Open the original scene below, or try a current Chrome or Edge browser.');
   document.querySelector('#loading-message').textContent='Connecting to WebGPU…';
   renderer=new THREE.WebGPURenderer({canvas,antialias:true,powerPreference:'high-performance'});
-  let initTimeout;
-  try { await Promise.race([renderer.init(),new Promise((_,reject)=>{initTimeout=setTimeout(()=>reject(new Error('WebGPU did not respond. Reload the study, or open the original scene below.')),15000);})]); } finally { clearTimeout(initTimeout); }
+  // Some browsers defer adapter creation in background tabs. Only count time
+  // spent in the foreground, and dispose an adapter that arrives after failure.
+  let initTimeout,expired=false;
+  const watchVisibility=()=>{
+    clearTimeout(initTimeout);
+    if(!document.hidden)initTimeout=setTimeout(()=>{expired=true;rejectInitialization(new Error('WebGPU did not respond. Bring this tab to the foreground and try again, or open the original scene below.'));},15000);
+  };
+  let rejectInitialization;
+  try{
+    await new Promise((resolve,reject)=>{
+      rejectInitialization=reject;
+      document.addEventListener('visibilitychange',watchVisibility);watchVisibility();
+      renderer.init().then(()=>{if(expired)renderer.dispose();else resolve();},reject);
+    });
+  }finally{clearTimeout(initTimeout);document.removeEventListener('visibilitychange',watchVisibility);}
   if(!renderer.backend.isWebGPUBackend){renderer.dispose();throw new Error('A WebGPU graphics adapter could not be opened. This study does not substitute WebGL for GPU compute. Open the original scene below.');}
   document.querySelector('#gpu-backend').textContent='WebGPU active';
   canvas.dataset.backend='webgpu';
