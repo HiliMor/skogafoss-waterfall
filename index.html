@@ -16,6 +16,15 @@
       <a class="brand" href="#" aria-label="Field Notes, return to opening view"><span class="brand-mark" aria-hidden="true">≋</span><span>FIELD NOTES<span class="brand-sub">LANDSCAPES YOU CAN EXPLORE</span></span></a>
       <div class="header-right"><span class="edition">ICELAND <i></i> 001</span><button class="icon-button" id="about-button" aria-label="About this landscape" aria-haspopup="dialog">i</button></div>
     </header>
+    <section class="weather-panel" aria-label="Choose weather and sky">
+      <div class="weather-heading"><span>THE SKY</span><span id="weather-status" role="status" aria-live="polite">Golden hour</span></div>
+      <div class="weather-modes" role="group" aria-label="Weather modes">
+        <button data-weather="clear" aria-pressed="false"><span aria-hidden="true">☀</span> Clear</button>
+        <button data-weather="golden" aria-pressed="true"><span aria-hidden="true">◒</span> Golden</button>
+        <button data-weather="storm" aria-pressed="false"><span aria-hidden="true">☂</span> Storm</button>
+        <button data-weather="aurora" aria-pressed="false"><span aria-hidden="true">✧</span> Aurora</button>
+      </div>
+    </section>
     <div class="coordinate-tag" aria-hidden="true">63°31′55″N &nbsp; 19°30′43″W</div>
     <section class="intro" aria-label="Skógafoss, South Iceland">
       <p class="eyebrow"><span></span> THE SOUTH COAST · ICELAND</p>
@@ -23,13 +32,14 @@
       <p class="intro-copy">Where the highlands meet the sea.</p>
       <div class="facts"><span><strong>60</strong> M FALL</span><span><strong>25</strong> M WIDE</span><span class="live"><i></i> A LIVING LANDSCAPE</span></div>
     </section>
-    <aside class="view-label" aria-live="polite"><span id="view-number">01 / 04</span><span id="view-name">The approach</span></aside>
+    <aside class="view-label" aria-live="polite"><span id="view-number">01 / 05</span><span id="view-name">The approach</span></aside>
     <footer class="toolbar">
       <div class="viewpoints" role="group" aria-label="Choose a viewpoint">
         <button data-view="approach" aria-pressed="true"><span>01</span> Approach</button>
         <button data-view="river" aria-pressed="false"><span>02</span> Riverbed</button>
-        <button data-view="cliff" aria-pressed="false"><span>03</span> Highlands</button>
-      <button data-view="valley" aria-pressed="false"><span>04</span> Valley</button>
+        <button data-view="lookout" aria-pressed="false"><span>03</span> Lookout</button>
+        <button data-view="cliff" aria-pressed="false"><span>04</span> Highlands</button>
+      <button data-view="valley" aria-pressed="false"><span>05</span> Valley</button>
       </div>
       <div class="scene-tools">
         <button id="motion-button" class="tool-button" aria-label="Pause water animation" aria-pressed="false"><span id="motion-icon" aria-hidden="true">Ⅱ</span><span class="tool-label">Pause</span></button>
@@ -45,8 +55,9 @@
       <p class="eyebrow">FIELD NOTES / 001</p><h2 id="about-title">A study of<br>Skógafoss.</h2>
       <p>A 60-metre curtain of water on Iceland’s south coast, framed by moss-covered cliffs and a dark volcanic riverbed.</p>
       <p>This interactive study is an artistic reconstruction. The waterfall’s approximate dimensions are grounded in references; terrain, rock placement and viewing positions are composed for this experience.</p>
-      <dl><div><dt>Explore</dt><dd>Drag to orbit · right-drag to pan · scroll or pinch to zoom</dd></div><div><dt>Shortcuts</dt><dd>1–4 viewpoints · Space pause · H home</dd></div><div><dt>Source</dt><dd><a href="https://www.south.is/en/place/skogafoss-waterfall" target="_blank" rel="noopener noreferrer">Visit South Iceland ↗</a></dd></div><div><dt>Textures</dt><dd>CC0 rock, grass, gravel &amp; sky from <a href="https://polyhaven.com" target="_blank" rel="noopener noreferrer">Poly Haven ↗</a></dd></div></dl>
-      <p class="about-note">Realtime 3D · Photographic materials · Composed terrain · Study 02</p>
+      <dl><div><dt>Explore</dt><dd>Drag to orbit · right-drag to pan · scroll or pinch to zoom</dd></div><div><dt>Shortcuts</dt><dd>1–5 viewpoints · Space pause · H home</dd></div><div><dt>Source</dt><dd><a href="https://www.south.is/en/place/skogafoss-waterfall" target="_blank" rel="noopener noreferrer">Visit South Iceland ↗</a></dd></div><div><dt>Textures</dt><dd>CC0 rock, grass, gravel &amp; sky from <a href="https://polyhaven.com" target="_blank" rel="noopener noreferrer">Poly Haven ↗</a></dd></div></dl>
+      <p>Choose a clear day, golden sunset, passing rain or an aurora night. Each sky changes the light, water and atmosphere. These are composed moods, not live weather.</p>
+      <p class="about-note">Realtime 3D · Photographic materials · Composed terrain · Study 03</p>
     </dialog>
   </main>
   <script type="module" src="/src/main.js"></script>

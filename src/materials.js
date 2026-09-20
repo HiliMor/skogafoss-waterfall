@@ -25,11 +25,12 @@ export async function loadLandscapeAssets(renderer, onProgress) {
   return assets;
 }
 
-export function terrainMaterial(assets, gravel = false) {
+export function terrainMaterial(assets, gravel = false, weather) {
   const base = gravel ? 'river_small_rocks' : 'dark_rock';
   const mat = new THREE.MeshStandardMaterial({ roughness: .95, envMapIntensity: .42 });
   mat.onBeforeCompile = shader => {
     Object.assign(shader.uniforms, {
+      uWeatherWet: weather?.wetness ?? {value:0},
       uRock: { value: assets[`${base}-color`] },
       uRockNormal: { value: assets[`${base}-normal`] },
       uRockArm: { value: assets[`${base}-arm`] },
@@ -56,7 +57,7 @@ export function terrainMaterial(assets, gravel = false) {
       varying vec3 vNaturePosition; varying vec3 vNatureNormal;
       varying float vCover; varying float vWetness;
       uniform sampler2D uRock, uRockNormal, uRockArm, uTurf, uTurfNormal, uTurfArm;
-      uniform float uTile; uniform vec3 uRockTint;
+      uniform float uTile, uWeatherWet; uniform vec3 uRockTint;
       float materialHash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
       float materialNoise(vec2 p) {
         vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f);
@@ -91,9 +92,9 @@ export function terrainMaterial(assets, gravel = false) {
       float coverage = smoothstep(.08, .9, vCover);
       vec3 arm = mix(triSample(uRockArm, rockP, natureWeights), triSample(uTurfArm, turfP, natureWeights), coverage);
       diffuseColor.rgb *= mix(rock, turf, coverage) * (.8 + .32 * materialNoise(vNaturePosition.xz * .07 + vNaturePosition.y * .1)) * mix(.72, 1., arm.r);
-      diffuseColor.rgb *= 1. - clamp(vWetness, 0., 1.) * .37;`);
+      diffuseColor.rgb *= 1. - clamp(vWetness + uWeatherWet * .6, 0., 1.) * .37;`);
     shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-      roughnessFactor = clamp(arm.g * .94 - vWetness * .26, .32, 1.);`);
+      roughnessFactor = clamp(arm.g * .94 - (vWetness + uWeatherWet * .55) * .26, .25, 1.);`);
     shader.fragmentShader = shader.fragmentShader.replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
       vec3 textureNormal = mix(triNormal(uRockNormal, rockP, natureWeights), triNormal(uTurfNormal, turfP, natureWeights), coverage);
       normal = normalize(normal + mat3(viewMatrix) * textureNormal * .38);`);
