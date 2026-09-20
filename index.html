@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#182520" />
+  <meta name="description" content="An interactive, real-time 3D study of Skógafoss, Iceland. Explore the waterfall, the riverbed and the cliffs." />
+  <title>Skógafoss — Field Notes</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231c302b'/%3E%3Cpath d='M22 12v26q0 12-8 14m18-40v40m10-40v26q0 12 8 14' fill='none' stroke='%23eae9d8' stroke-width='4'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <main id="experience" aria-label="Interactive landscape of Skógafoss waterfall">
+    <canvas id="scene" aria-label="Three-dimensional Skógafoss. Drag to orbit and scroll to zoom. Use the viewpoint buttons for keyboard navigation."></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+    <header class="masthead">
+      <a class="brand" href="#" aria-label="Field Notes, return to opening view"><span class="brand-mark" aria-hidden="true">≋</span><span>FIELD NOTES<span class="brand-sub">LANDSCAPES YOU CAN EXPLORE</span></span></a>
+      <div class="header-right"><span class="edition">ICELAND <i></i> 001</span><button class="icon-button" id="about-button" aria-label="About this landscape" aria-haspopup="dialog">i</button></div>
+    </header>
+    <div class="coordinate-tag" aria-hidden="true">63°31′55″N &nbsp; 19°30′43″W</div>
+    <section class="intro" aria-label="Skógafoss, South Iceland">
+      <p class="eyebrow"><span></span> THE SOUTH COAST · ICELAND</p>
+      <h1>Skógafoss<span>.</span></h1>
+      <p class="intro-copy">Where the highlands meet the sea.</p>
+      <div class="facts"><span><strong>60</strong> M FALL</span><span><strong>25</strong> M WIDE</span><span class="live"><i></i> A LIVING LANDSCAPE</span></div>
+    </section>
+    <aside class="view-label" aria-live="polite"><span id="view-number">01 / 03</span><span id="view-name">The approach</span></aside>
+    <footer class="toolbar">
+      <div class="viewpoints" role="group" aria-label="Choose a viewpoint">
+        <button data-view="approach" aria-pressed="true"><span>01</span> Approach</button>
+        <button data-view="river" aria-pressed="false"><span>02</span> Riverbed</button>
+        <button data-view="cliff" aria-pressed="false"><span>03</span> Above the falls</button>
+      </div>
+      <div class="scene-tools">
+        <button id="motion-button" class="tool-button" aria-label="Pause water animation" aria-pressed="false"><span id="motion-icon" aria-hidden="true">Ⅱ</span><span class="tool-label">Pause</span></button>
+        <button id="sound-button" class="tool-button" aria-label="Enable ambient water sound" aria-pressed="false"><span aria-hidden="true">♫</span><span class="tool-label">Sound off</span></button>
+        <button id="reset-button" class="tool-button" aria-label="Reset camera to the approach"><span aria-hidden="true">↺</span><span class="tool-label">Reset</span></button>
+      </div>
+    </footer>
+    <div class="gesture-hint" id="gesture-hint">DRAG TO EXPLORE <span>·</span> SCROLL TO MOVE CLOSER</div>
+    <div id="loading" role="status"><div class="loading-inner"><span class="loading-kicker">FIELD NOTES / ICELAND</span><span class="loading-title">A moment in nature.</span><div class="loading-track"><span></span></div><span id="loading-message">Shaping the landscape…</span></div></div>
+    <div id="error" hidden role="alert"><h2>The landscape could not open.</h2><p id="error-message">Try a browser with WebGL 2 support.</p><button onclick="location.reload()">Try again</button></div>
+    <dialog id="about-dialog" aria-labelledby="about-title">
+      <button id="close-about" class="icon-button" aria-label="Close information">×</button>
+      <p class="eyebrow">FIELD NOTES / 001</p><h2 id="about-title">A study of<br>Skógafoss.</h2>
+      <p>A 60-metre curtain of water on Iceland’s south coast, framed by moss-covered cliffs and a dark volcanic riverbed.</p>
+      <p>This first interactive study is an artistic reconstruction. The waterfall’s approximate dimensions are grounded in references; terrain, rock placement and viewing positions are composed for this experience.</p>
+      <dl><div><dt>Explore</dt><dd>Drag to orbit · scroll or pinch to zoom</dd></div><div><dt>Shortcuts</dt><dd>1–3 viewpoints · Space pause · H home</dd></div><div><dt>Source</dt><dd><a href="https://www.south.is/en/place/skogafoss-waterfall" target="_blank" rel="noopener noreferrer">Visit South Iceland ↗</a></dd></div></dl>
+      <p class="about-note">Realtime 3D · Original procedural artwork · Study 01</p>
+    </dialog>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
