@@ -33,6 +33,8 @@ npm run dev
 
 ## WebGPU water study
 
+See the [implementation guide](docs/WEBGPU.md) for architecture, controls, detail placement, validation and limitations, and the [changelog](CHANGELOG.md) for the development history.
+
 This branch adds a separate experiment at **`/webgpu.html`**. The original WebGL 2 scene remains at `/`; its About dialog links to the study. Both pages are included in the static production build. No additional packages, asset services or paid APIs are required.
 
 The study uses Three.js `WebGPURenderer` and TSL node materials for the landscape, continuous waterfall, river reflections, skies, rain and grass. Native WebGPU compute updates **24,576 particles** (12,288 on coarse-pointer devices) in resident position/velocity storage buffers. A fixed 1/120-second simulation step applies gravity, wind, terrain/water impacts, short splashes and a smaller drifting mist population. A sampled height field follows the rendered riverbed and front slope. Pause stops the simulation and all animated material clocks.
@@ -43,11 +45,16 @@ The **WebGPU active** badge is set only after the native backend initializes. If
 
 This is a hybrid artistic scene, **not a full fluid solver**: the main curtain is a continuous animated surface, droplets do not interact with one another, and collisions use a height field rather than the cliff/stair/rock meshes. TSL materials and reflection filtering differ from the original GLSL version, so visual parity is approximate. A WebGPU renderer alone does not guarantee better visuals or faster frames.
 
+### River and vegetation details
+
+The WebGPU version adds partially submerged river boulders, clustered bank stones and broken foam wakes that follow the river bends. Wet rock shading, gravel-colored shallows and finer current streaks tie the stones into the water. Meadow colors vary at several scales, with clustered bent grass and low moss cushions sampled against the rendered terrain; river channels, steep faces and the staircase corridor stay clear. Detail counts scale down for coarse-pointer devices. All assets remain local and reuse the existing CC0 material set.
+
 ### Experiment checks
 
 - Production scene checked in the local desktop browser with a native WebGPU backend: five viewpoints, four atmospheres, particle readback and animation controls. Narrow-screen layout also checked; actual phone hardware has not been profiled.
-- A 1280×800 Clear/Approach sample measured approximately 52 fps with spray and 56 fps with spray disabled. These short, sequential samples include the whole scene and browser scheduling; they are illustrative, not GPU timings or a controlled WebGPU-versus-WebGL benchmark.
-- `npm test` includes collision-floor/plateau exclusion, GPU readback validation, frame-timing statistics and independent camera presets, alongside the original landscape tests.
+- Before the landscape-detail pass, a 1280×800 Clear/Approach sample measured approximately 52 fps with spray and 56 fps with spray disabled. These short, sequential samples include the whole scene and browser scheduling; they are illustrative, not GPU timings or a controlled WebGPU-versus-WebGL benchmark.
+- After the detail pass, a local 1280×800 Clear/Approach sample with spray enabled measured 46.6 fps (median 20.7 ms, p95 28.0 ms). It was not a controlled comparison with the earlier sample.
+- `npm test` includes collision-floor/plateau exclusion, GPU readback validation, frame-timing statistics and independent camera presets, grounded detail placement, stair clearance and wake alignment, alongside the original landscape tests.
 - Shader compilation and runtime GPU state require browser verification; passing Node tests alone does not establish GPU correctness.
 
 Implementation: `src/gpu/` (renderer, TSL materials, simulation, weather and lab), shared `src/views.js` and `src/weather-presets.js`. The two HTML entry points are configured in `vite.config.js`.
