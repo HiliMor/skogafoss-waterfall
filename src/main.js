@@ -64,8 +64,8 @@ async function init(){
   scene.environment=assets.sky;
   weather=createWeather({scene,renderer,camera,sun,hemi,assets,quality,reducedMotion});
   terrain=createTerrain(scene,quality,assets,weather.state);water=createWater(scene,quality,weather.state);
-  document.querySelector('#loading-message').textContent='Waiting for the golden light…';
-  await weather.setMode('golden',true);
+  document.querySelector('#loading-message').textContent='Opening the clear sky…';
+  await weather.setMode('clear',true);
   setView('approach',false);updateMotion();
   // Compile before removing the loader, so the opening view is a complete frame.
   document.querySelector('#loading-message').textContent='Letting the water flow…';
