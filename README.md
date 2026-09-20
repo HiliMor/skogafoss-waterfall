@@ -18,7 +18,7 @@ npm run dev
 - A detailed valley around the fall, extended into several kilometres of composed landscape: a winding upper river, broad meadows and distant highlands.
 - Photographic rock, turf and gravel textures, including surface normals and roughness; triplanar mapping and varying texture offsets soften visible repetition.
 - Embedded boulders and pebbles sampled against the actual terrain triangles, wind-animated grass and 16 visitors distributed between the riverbed, staircase and lookout.
-- A continuous river-to-waterfall surface with a rounded lip, unequal streams, turbulent folds, droplets and wind-driven spray. The lower river has live planar reflections and foam.
+- A continuous river-to-waterfall surface with a rounded lip, asymmetric banks, unequal streams, fine turbulent ridges and independently falling bodies of aerated foam. Droplets and wind-driven spray soften its edges. The lower river has live planar reflections and foam.
 - Five camera viewpoints: Approach, Riverbed, Lookout, Highlands and Valley.
 - Four selectable atmospheres: Clear, Golden, Storm and Aurora. HDR panoramas crossfade with lighting, fog, water color, terrain wetness and wind; storm mode adds rain, and night mode adds animated northern lights.
 
@@ -53,4 +53,4 @@ This is an artistic reconstruction, not surveyed terrain or photogrammetry. Rock
 
 The production build and all five viewpoints were checked in the desktop browser, with a narrow viewport check for the mobile interface. Actual phone GPU performance is not yet profiled. The scene requires WebGL 2. Terrain textures and the initial overcast sky total approximately 8.8 MB. The selected 2K panorama adds roughly 5 MB; other skies load on demand and are cached for the session; no asset API key or paid service is required. Google Fonts is optional and has fallback fonts.
 
-Visual reference for the continuous crest and unequal sheets of water: [Mr Iceland — Skógafoss](https://mriceland.is/south-coast-destinations/skogafoss/). Reference photographs are not bundled into the scene.
+Visual references for the continuous crest and unequal sheets of water: [Mr Iceland — Skógafoss](https://mriceland.is/south-coast-destinations/skogafoss/) and the close-up [Cascading Force](https://community.naturephotographers.network/t/cascading-force/46946), especially its shaded channels, torn edges and clumps of white water. Reference photographs are not bundled into the scene.

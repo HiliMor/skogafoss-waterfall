@@ -11,8 +11,11 @@ export function waterfallPoint(u, v) {
   depth=Math.max(0,(upperRiverHeight(-.7)-y)/58.7);
   const width=v<.22 ? upperRiverWidth(z)*2 : upperRiverWidth(-.7)*2+depth*depth*(7+1.6*Math.sin(depth*11));
   const center=v<.22 ? upperRiverCenter(z) : upperRiverCenter(-.7)+depth*depth*.9;
-  const x=center+(u-.5)*width+Math.sign(u-.5)*Math.abs(u-.5)*2*depth*Math.sin(depth*19+u*7)*.8;
-  const lobes=(Math.sin(u*13+.8)+.5*Math.sin(u*29))*Math.sin(Math.min(1,depth)*Math.PI)*.7;
+  // Unequal banks create a heavier left-hand plume and a narrower torn right edge.
+  const left=-width*.5-depth*(1.7+Math.sin(depth*18+.5)*1.1);
+  const right=width*.5+depth*(.5+Math.sin(depth*13+2)*.7);
+  const x=v<.22 ? center+(u-.5)*width : center+left+(right-left)*u;
+  const lobes=(Math.sin(u*17+.8)+.5*Math.sin(u*37+depth*8))*Math.sin(Math.min(1,depth)*Math.PI)*1.65;
   return [x,y,z+lobes];
 }
 
@@ -28,35 +31,46 @@ export function createWater(scene,quality,weather){
     vertexShader:`varying vec2 vUv;varying vec3 vWorld;uniform float uTime,uWind;${noiseGLSL}
       void main(){vUv=uv;vec3 p=position;float depth=clamp((60.-position.y)/59.,0.,1.);
         float body=smoothstep(.26,.45,uv.y);float travel=sqrt(depth);
-        float folds=f2(vec2(uv.x*21.,travel*18.-uTime*2.6));
-        p.z+=body*(folds-.5)*(.5+depth*2.5);
-        p.x+=body*depth*(sin(travel*13.-uTime*2.+uv.x*9.)*.28+uWind*depth*.65);
+        float folds=f2(vec2(uv.x*24.+sin(travel*18.-uTime*3.)*.7,travel*32.-uTime*5.));
+        p.z+=body*(folds-.5)*(1.+depth*5.);
+        p.x+=body*depth*(sin(travel*29.-uTime*4.+uv.x*11.)*.6+uWind*depth*.65);
         vWorld=(modelMatrix*vec4(p,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
     fragmentShader:`uniform float uTime;varying vec2 vUv;varying vec3 vWorld;${noiseGLSL}${atmosphere}
       void main(){
         float depth=clamp((60.-vWorld.y)/59.,0.,1.),travel=sqrt(depth),t=uTime;
-        float broad=f2(vec2(vUv.x*13.+sin(travel*5.-t)*.24,travel*12.-t*3.1));
-        float ribbon=f2(vec2(vUv.x*74.,travel*24.-t*7.4));
-        float fine=n2(vec2(vUv.x*210.,travel*67.-t*19.));
-        float plumes=f2(vec2(vUv.x*31.+sin(travel*9.)*.6,travel*56.-t*12.));
-        float stream=.5+.25*sin(vUv.x*15.+.8)+.19*sin(vUv.x*32.);
-        float aeration=smoothstep(.06,.8,depth);
-        float channelA=exp(-pow((vUv.x-.32-sin(travel*7.)*.018)/.049,2.));
-        float channelB=exp(-pow((vUv.x-.66-sin(travel*9.+1.)*.016)/.038,2.));
-        float channels=(channelA*.8+channelB*.65)*(1.-smoothstep(.18,.78,depth));
-        float foam=clamp(.08+stream*.30+broad*.37+ribbon*.40+aeration*plumes*.56-channels*.28,0.,1.);
-        vec3 falling=mix(vec3(.09,.14,.16),vec3(.94,.98,1.),foam);
-        falling+=fine*.035;
+        // A falling coordinate accelerates the texture; lateral warping grows as
+        // compact upper ribbons break into irregular, aerated bodies below.
+        float aeration=smoothstep(.03,.72,depth);
+        vec2 flow=vec2(vUv.x*62.,travel*132.-t*19.5);
+        vec2 warp=vec2(f2(flow*.63),f2(flow*.49+17.))-.5;
+        vec2 billow=flow+warp*vec2(2.8,3.2)*aeration;
+        float broad=f2(vec2(vUv.x*12.+warp.x*aeration,travel*16.-t*2.5));
+        float ribbon=f2(vec2(vUv.x*148.+warp.x*aeration*6.,travel*73.-t*10.8));
+        float fine=n2(billow*vec2(7.,3.));
+        float plume=f2(billow);
+        float froth=smoothstep(.23,.76,plume+ribbon*.18);
+        float stream=.5+.23*sin(vUv.x*17.+.8)+.17*sin(vUv.x*39.+1.5);
+        float channelA=exp(-pow((vUv.x-.27-warp.x*.035)/.040,2.));
+        float channelB=exp(-pow((vUv.x-.61-warp.y*.05)/.028,2.));
+        float channelC=exp(-pow((vUv.x-.83-warp.x*.025)/.020,2.));
+        float channels=(channelA*.8+channelB+channelC*.65)*(1.-smoothstep(.22,.92,depth));
+        float foam=clamp(.1+stream*.18+broad*.17+ribbon*.35+froth*(.3+aeration*.23)-channels*.29,0.,1.);
+        vec3 falling=mix(vec3(.07,.12,.15),vec3(.60,.70,.74),smoothstep(.08,.97,foam));
+        // Smaller moving ridges stay visible inside the bright plumes, instead
+        // of letting tone mapping merge whole streams into flat white patches.
+        float ridge=f2(billow+vec2(.4,-.25))-plume;
+        falling*=.71+froth*.18+fine*.20+ridge*.65;
         vec2 p=vWorld.xz;
         float ripple=f2(vec2(p.x*.6,p.y*.43-t*2.2));
         vec3 upstream=mix(vec3(.055,.10,.12),vec3(.64,.75,.78),smoothstep(.48,.79,ripple)*.85);
         upstream+=pow(max(0.,sin(p.y*1.9-t*6.+ripple*8.)),16.)*.19;
         vec3 color=mix(upstream,falling,smoothstep(.205,.31,vUv.y));
-        float edgeNoise=f2(vec2(vUv.y*42.-t*4.,vUv.x*23.));
-        float edgeWidth=.007+depth*(.012+edgeNoise*.025);
-        float edge=smoothstep(0.,edgeWidth,vUv.x)*smoothstep(0.,edgeWidth,1.-vUv.x);
-        float thin=smoothstep(.05,.3,stream+ribbon*.18);
-        float alpha=edge*mix(1.,.74+thin*.26-channels*.25,smoothstep(.3,.5,vUv.y))*(1.-smoothstep(.965,1.,vUv.y));
+        float edgeNoise=f2(vec2(travel*110.-t*16.,vUv.x*39.));
+        float edgeWidth=.003+depth*(.009+edgeNoise*.05);
+        float fray=(edgeNoise-.5)*depth*.025;
+        float edge=smoothstep(0.,edgeWidth,vUv.x+fray)*smoothstep(0.,edgeWidth*.75,1.-vUv.x-fray);
+        float thin=smoothstep(.20,.5,stream+ribbon*.3);
+        float alpha=edge*mix(1.,.65+thin*.35-channels*.34,smoothstep(.3,.5,vUv.y))*(1.-smoothstep(.955,1.,vUv.y));
         gl_FragColor=vec4(atmosphericWater(color,vWorld),alpha);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -88,6 +102,38 @@ export function createWater(scene,quality,weather){
       #include <colorspace_fragment>
     }`
   });const drops=new THREE.Points(dropsGeo,dropsMat);drops.frustumCulled=false;scene.add(drops);
+  // Larger, soft bodies of aerated water give the falling sheet volume. Their
+  // ballistic paths and independent phases avoid a single repeating curtain.
+  const foamCount=quality==='low'?1000:2400,fp=[],fs=[];
+  for(let i=0;i<foamCount;i++){fp.push(rand(),rand(),rand());fs.push(rand());}
+  const foamGeo=new THREE.BufferGeometry();foamGeo.setAttribute('position',new THREE.Float32BufferAttribute(fp,3));foamGeo.setAttribute('aSeed',new THREE.Float32BufferAttribute(fs,1));
+  const foamMat=new THREE.ShaderMaterial({uniforms:{...uniforms,uPixelRatio:{value:Math.min(devicePixelRatio,1.75)}},transparent:true,depthWrite:false,
+    vertexShader:`uniform float uTime,uPixelRatio,uWind;attribute float aSeed;varying float vAlpha,vSeed,vDepth;varying vec3 vWorld;
+      void main(){float age=fract(position.y+uTime*(.23+aSeed*.04)),depth=age*age;
+        float width=25.+depth*depth*(7.+1.6*sin(depth*11.));
+        float left=-width*.5-depth*(1.7+sin(depth*18.+.5)*1.1);
+        float right=width*.5+depth*(.5+sin(depth*13.+2.)*.7);
+        float x=mix(left,right,position.x)+depth*depth*(.9+uWind*.65);
+        float d=max(0.,(depth*58.7-1.8)/56.9);
+        float lobe=(sin(position.x*17.+.8)+.5*sin(position.x*37.+depth*8.))*sin(depth*3.14159)*1.65;
+        vec3 p=vec3(x,60.1525-depth*58.7,1.1+d*4.+d*d*5.+lobe+1.1+position.z*2.4);
+        vWorld=(modelMatrix*vec4(p,1.)).xyz;vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
+        float size=(.25+pow(aSeed,2.)*1.5)*(.45+depth*.95);
+        gl_PointSize=clamp(size*850.*uPixelRatio/-mv.z,1.,90.);
+        vAlpha=smoothstep(.04,.18,depth)*(1.-smoothstep(.86,1.,depth))*(.27+aSeed*.34);vSeed=aSeed;vDepth=depth;
+      }`,
+    fragmentShader:`uniform float uTime;varying float vAlpha,vSeed,vDepth;varying vec3 vWorld;${noiseGLSL}${atmosphere}
+      void main(){vec2 q=gl_PointCoord-.5;q.x*=1.6-vDepth*.55;
+        float n=f2(q*10.+vSeed*71.);
+        float radius=length(q)+(.5-n)*.18;
+        float a=(1.-smoothstep(.12,.46,radius))*(.48+n*.52)*vAlpha;
+        float light=clamp(.64-q.x*.4+q.y*.24+(n-.5)*.35,.2,1.);
+        vec3 col=mix(vec3(.28,.40,.46),vec3(.87,.94,.97),light);
+        gl_FragColor=vec4(atmosphericWater(col,vWorld),a);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`
+  });const foamBodies=new THREE.Points(foamGeo,foamMat);foamBodies.name='Aerated waterfall plumes';foamBodies.frustumCulled=false;scene.add(foamBodies);
   const mistCount=quality==='low'?140:290,mp=[],ms=[];
   for(let i=0;i<mistCount;i++){mp.push(rand(),rand(),rand());ms.push(rand());}
   const mistGeo=new THREE.BufferGeometry();mistGeo.setAttribute('position',new THREE.Float32BufferAttribute(mp,3));mistGeo.setAttribute('aSeed',new THREE.Float32BufferAttribute(ms,1));

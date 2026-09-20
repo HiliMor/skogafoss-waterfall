@@ -22,7 +22,7 @@ The following CC0 panoramas live in `public/skies/`. They load on demand and the
 | File | Original | Authors | Mode |
 | --- | --- | --- | --- |
 | `clear.hdr` | [Kloofendal 43d Clear](https://polyhaven.com/a/kloofendal_43d_clear_puresky) | Greg Zaal | Clear |
-| `golden.hdr` | [Belfast Sunset](https://polyhaven.com/a/belfast_sunset_puresky) | Dimitrios Savva; processing by Greg Zaal; sky edits by Jarod Guest | Golden |
+| `golden.hdr` | [Kloppenheim 06 Pure Sky](https://polyhaven.com/a/kloppenheim_06_puresky) | Greg Zaal; sky edits by Jarod Guest | Golden |
 | `night.hdr` | [Qwantani Night](https://polyhaven.com/a/qwantani_night_puresky) | Greg Zaal; processing by Jarod Guest | Aurora |
 
 Storm mode reuses `public/textures/sky.hdr`. Rain, aurora curtains and additional stars are generated in shaders. All modes adjust exposure and lighting for this scene; the sky photographs were not captured at Skógafoss.

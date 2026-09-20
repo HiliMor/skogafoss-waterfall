@@ -3,8 +3,8 @@ import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { noiseGLSL, randomGenerator } from './nature.js';
 
 export const WEATHER = {
-  clear: { label:'Clear day', sky:'clear', rotation:2.0, skyGain:.42, sun:'#fff5de', sunPower:2.7, sunPosition:[-90,150,100], hemi:'#c6def8', ground:'#6c7050', hemiPower:1.1, fog:'#b9d2de', density:.00042, exposure:1.05, environment:.7, water:'#ebf3ef', waterLight:1, wetness:0, wind:.25, rain:0, aurora:0, spray:.9 },
-  golden: { label:'Golden hour', sky:'golden', rotation:2.85, skyGain:.42, sun:'#ffd195', sunPower:2.8, sunPosition:[-130,65,100], hemi:'#e7c4bf', ground:'#575f43', hemiPower:.9, fog:'#d2b7ae', density:.0005, exposure:1.05, environment:.62, water:'#ffe2c4', waterLight:.9, wetness:.05, wind:.18, rain:0, aurora:0, spray:1 },
+  clear: { label:'Clear day', sky:'clear', rotation:2.0, skyGain:.34, skyTint:[.66,.92,1.24], sun:'#fff3e2', sunPower:2.2, sunPosition:[-90,150,100], hemi:'#b6d7ef', ground:'#465a3b', hemiPower:1, fog:'#91b1c8', density:.00032, exposure:.97, environment:.48, water:'#d6e3e6', waterLight:.85, wetness:0, wind:.25, rain:0, aurora:0, spray:.68 },
+  golden: { label:'Golden hour', sky:'golden', rotation:2.75, skyGain:.27, skyTint:[1.6,.86,.40], sun:'#ffc47f', sunPower:2.3, sunPosition:[-130,65,100], hemi:'#bbb8d7', ground:'#515b41', hemiPower:.78, fog:'#c6a8a3', density:.00042, exposure:.98, environment:.5, water:'#f9ddc6', waterLight:.85, wetness:.05, wind:.18, rain:0, aurora:0, spray:.8 },
   storm: { label:'Passing storm', sky:'storm', rotation:.65, skyGain:.3, sun:'#abc4d8', sunPower:.3, sunPosition:[-85,140,100], hemi:'#9bb5ca', ground:'#293d37', hemiPower:.9, fog:'#798f9d', density:.0012, exposure:.95, environment:.45, water:'#b9d0dc', waterLight:.68, wetness:.92, wind:1, rain:1, aurora:0, spray:1.6 },
   aurora: { label:'Northern lights', sky:'night', rotation:1.9, skyGain:.012, sun:'#b1cbe8', sunPower:.22, sunPosition:[-60,140,70], hemi:'#7193b5', ground:'#182b2e', hemiPower:.46, fog:'#12232f', density:.0008, exposure:.86, environment:.18, water:'#9cbacb', waterLight:.36, wetness:.12, wind:.1, rain:0, aurora:1, spray:.72 }
 };
@@ -16,14 +16,19 @@ export function createWeather({ scene, renderer, camera, sun, hemi, assets, qual
   };
   const skyUniforms = {
     uSkyA:{value:assets.sky},uSkyB:{value:assets.sky},uBlend:{value:0},uGainA:{value:.8},uGainB:{value:.8},
-    uRotationA:{value:.65},uRotationB:{value:.65},uAurora:{value:0},uTime:{value:0}
+    uRotationA:{value:.65},uRotationB:{value:.65},uTintA:{value:new THREE.Vector3(1,1,1)},uTintB:{value:new THREE.Vector3(1,1,1)},uAurora:{value:0},uTime:{value:0}
   };
   const sky = new THREE.Mesh(new THREE.SphereGeometry(1,48,24),new THREE.ShaderMaterial({
     side:THREE.BackSide,depthWrite:false,uniforms:skyUniforms,
     vertexShader:`varying vec3 vDirection;void main(){vDirection=position;vec4 p=projectionMatrix*mat4(mat3(viewMatrix))*vec4(position,1.);gl_Position=p.xyww;}`,
-    fragmentShader:`varying vec3 vDirection;uniform sampler2D uSkyA,uSkyB;uniform float uBlend,uGainA,uGainB,uRotationA,uRotationB,uAurora,uTime;${noiseGLSL}
+    fragmentShader:`varying vec3 vDirection;uniform sampler2D uSkyA,uSkyB;uniform vec3 uTintA,uTintB;uniform float uBlend,uGainA,uGainB,uRotationA,uRotationB,uAurora,uTime;${noiseGLSL}
       vec2 skyUv(vec3 d,float rotation){return vec2(fract(atan(d.z,d.x)/6.2831853+.5+rotation/6.2831853),asin(clamp(d.y,-1.,1.))/3.14159265+.5);}
-      void main(){vec3 d=normalize(vDirection);vec3 col=mix(texture2D(uSkyA,skyUv(d,uRotationA)).rgb*uGainA,texture2D(uSkyB,skyUv(d,uRotationB)).rgb*uGainB,uBlend);
+      vec3 skyGrade(vec3 c,vec3 tint,float elevation){
+        // Keep the upper atmosphere cooler while warming the lit cloud banks.
+        vec3 grade=mix(tint,vec3(1.),smoothstep(.05,.8,elevation)*.65);
+        c*=grade;float l=dot(c,vec3(.2126,.7152,.0722));return max(vec3(0.),mix(vec3(l),c,1.16));
+      }
+      void main(){vec3 d=normalize(vDirection);vec3 col=mix(skyGrade(texture2D(uSkyA,skyUv(d,uRotationA)).rgb*uGainA,uTintA,d.y),skyGrade(texture2D(uSkyB,skyUv(d,uRotationB)).rgb*uGainB,uTintB,d.y),uBlend);
         if(uAurora>.001&&d.y>0.){
           float az=atan(d.z,d.x),elevation=asin(d.y),t=uTime*.025;
           for(int i=0;i<2;i++){
@@ -86,6 +91,7 @@ export function createWeather({ scene, renderer, camera, sun, hemi, assets, qual
       const texture=await getSky(config.sky);if(id!==request)return false;
       const from=capture();
       skyUniforms.uSkyA.value=skyUniforms.uSkyB.value;skyUniforms.uGainA.value=skyUniforms.uGainB.value;skyUniforms.uRotationA.value=skyUniforms.uRotationB.value;
+      skyUniforms.uTintA.value.copy(skyUniforms.uTintB.value);skyUniforms.uTintB.value.fromArray(config.skyTint??[1,1,1]);
       skyUniforms.uSkyB.value=texture;skyUniforms.uGainB.value=config.skyGain;skyUniforms.uRotationB.value=config.rotation;skyUniforms.uBlend.value=0;
       scene.environment=texture;scene.environmentRotation.y=config.rotation;
       if(instant||reducedMotion){apply(from,config,1);skyUniforms.uBlend.value=1;transition=null;}

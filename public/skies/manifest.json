@@ -11,10 +11,10 @@
     },
     {
       "file": "golden.hdr",
-      "asset": "belfast_sunset_puresky",
-      "size": 4563204,
-      "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/belfast_sunset_puresky_2k.hdr",
-      "md5": "4bb56d6163ef1c7ec762e4a7ef8ede81"
+      "asset": "kloppenheim_06_puresky",
+      "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/kloppenheim_06_puresky_2k.hdr",
+      "md5": "590a829b3cf71216451655e601d542c6",
+      "size": 4434394
     },
     {
       "file": "night.hdr",

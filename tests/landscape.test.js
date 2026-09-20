@@ -40,6 +40,19 @@ test('water is continuous around both sections of the curved lip', () => {
   }
 });
 
+test('unequal waterfall plumes stay finite and never fold across the flow', () => {
+  for(let j=0;j<=230;j++) {
+    const v=j/230;let previousX=-Infinity;
+    for(let i=0;i<=110;i++) {
+      const p=waterfallPoint(i/110,v);
+      assert.ok(p.every(Number.isFinite));
+      assert.ok(p[0]>previousX,'each cross-section remains ordered from bank to bank');
+      if(j>0)assert.ok(p[1]<=waterfallPoint(i/110,(j-1)/230)[1],'water always descends');
+      previousX=p[0];
+    }
+  }
+});
+
 test('ground stones are embedded in the sampled terrain', () => {
   const matrix=new THREE.Matrix4(),center=new THREE.Vector3();
   for(const name of ['Riverbank stones','Highland stones','Riverbank pebbles']) {
