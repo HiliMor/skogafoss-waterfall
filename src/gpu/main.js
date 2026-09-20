@@ -1,11 +1,16 @@
+import '../style.css';
 import './style.css';
-import { createViews } from './views.js';
-import * as THREE from 'three';
+import { createViews } from '../views.js';
+import * as THREE from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { createTerrain, terrainHeightAt } from './nature.js';
-import { loadLandscapeAssets } from './materials.js';
-import { createWater } from './water.js';
-import { createWeather } from './weather.js';
+import { createTerrain, terrainHeightAt } from '../nature.js';
+import { loadLandscapeAssets } from '../materials.js';
+import { createGPUWater } from './water.js';
+import { createSpraySimulation,SIMULATION_STEP } from './simulation.js';
+import { terrainNodeMaterial,grassNodeMaterial } from './materials.js';
+import { uniform } from 'three/tsl';
+import { createGPUWeather } from './weather.js';
+import { attachLab } from './lab.js';
 
 const canvas=document.querySelector('#scene');
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -13,6 +18,8 @@ const quality=matchMedia('(pointer: coarse)').matches?'low':'high';
 let paused=reducedMotion,renderer,scene,camera,controls,water,terrain,weather,flight=null,time=3,last=performance.now(),frame=0,audio=null,sound=false;
 const views=createViews();
 let selected='approach';
+const sceneTime=uniform(3);
+let simulation,lab,accumulator=0;
 
 function showError(message){document.querySelector('#error-message').textContent=message;document.querySelector('#error').hidden=false;document.querySelector('#loading').classList.add('done');}
 function setView(name,animate=true){
@@ -43,7 +50,16 @@ async function toggleSound(){
 
 
 async function init(){
-  renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+  if(!navigator.gpu)throw new Error('WebGPU is unavailable in this browser. Open the original scene below, or try a current Chrome or Edge browser.');
+  document.querySelector('#loading-message').textContent='Connecting to WebGPU…';
+  renderer=new THREE.WebGPURenderer({canvas,antialias:true,powerPreference:'high-performance'});
+  let initTimeout;
+  try { await Promise.race([renderer.init(),new Promise((_,reject)=>{initTimeout=setTimeout(()=>reject(new Error('WebGPU did not respond. Reload the study, or open the original scene below.')),15000);})]); } finally { clearTimeout(initTimeout); }
+  if(!renderer.backend.isWebGPUBackend){renderer.dispose();throw new Error('A WebGPU graphics adapter could not be opened. This study does not substitute WebGL for GPU compute. Open the original scene below.');}
+  document.querySelector('#gpu-backend').textContent='WebGPU active';
+  canvas.dataset.backend='webgpu';
+  renderer.backend.device.addEventListener('uncapturederror',event=>{renderer.setAnimationLoop(null);showError(`The GPU could not render this study: ${event.error.message.split('\n')[0].slice(0,220)}`);});
+  renderer.backend.device.lost.then(info=>{if(info.reason!=='destroyed'){renderer.setAnimationLoop(null);showError('The GPU connection was interrupted. Reload the study or open the original scene.');}});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,quality==='low'?1.3:1.7));
   renderer.setSize(innerWidth,innerHeight,false);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
@@ -57,14 +73,21 @@ async function init(){
   sun.shadow.mapSize.set(quality==='low'?1024:2048,quality==='low'?1024:2048);Object.assign(sun.shadow.camera,{left:-150,right:150,top:150,bottom:-100,near:5,far:380});sun.shadow.bias=-.0004;sun.shadow.normalBias=.35;sun.shadow.radius=3;sun.target.position.set(0,25,0);scene.add(sun,sun.target);
   const assets=await loadLandscapeAssets(renderer,(loaded,total)=>{document.querySelector('#loading-message').textContent=`Gathering rock, moss & sky… ${loaded} / ${total}`;});
   scene.environment=assets.sky;
-  weather=createWeather({scene,renderer,camera,sun,hemi,assets,quality,reducedMotion});
-  terrain=createTerrain(scene,quality,assets,weather.state);water=createWater(scene,quality,weather.state);
+  weather=createGPUWeather({scene,renderer,camera,sun,hemi,assets,quality,reducedMotion,time:sceneTime});
+  terrain=createTerrain(scene,quality,assets,weather.state,terrainNodeMaterial);
+  const grass=scene.getObjectByName('Wind-swept grass'),phases=[];
+  for(let i=0;i<grass.count;i++)phases.push(grass.instanceMatrix.array[i*16+12]*.31+grass.instanceMatrix.array[i*16+14]*.18);
+  grass.geometry.setAttribute('aGrassPhase',new THREE.InstancedBufferAttribute(new Float32Array(phases),1));
+  grass.material.dispose();grass.material=grassNodeMaterial(sceneTime,weather.state.wind);
+  water=createGPUWater(scene,quality,weather.state,sceneTime);
+  simulation=createSpraySimulation({scene,renderer,quality,weather:weather.state,time:sceneTime,surfaces:terrain.surfaces});
+  lab=attachLab({simulation,canvas,isPaused:()=>paused,getView:()=>selected,getWeather:()=>weather.current});
   document.querySelector('#loading-message').textContent='Opening the clear sky…';
   await weather.setMode('clear',true);
   setView('approach',false);updateMotion();
   // Compile before removing the loader, so the opening view is a complete frame.
   document.querySelector('#loading-message').textContent='Letting the water flow…';
-  renderer.compile(scene,camera);resize();renderer.setAnimationLoop(render);
+  await renderer.compileAsync(scene,camera);resize();last=performance.now();renderer.setAnimationLoop(now=>{try{render(now);}catch(error){console.error(error);renderer.setAnimationLoop(null);showError(error.message);}});
   document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
   document.querySelectorAll('button[data-weather]').forEach(b=>b.addEventListener('click',()=>weather.setMode(b.dataset.weather)));
   document.querySelector('#reset-button').addEventListener('click',()=>setView('approach'));
@@ -97,7 +120,10 @@ function render(now){
   controls.update();
   const floor=terrainHeightAt(camera.position.x,camera.position.z)+3;
   if(camera.position.y<floor){camera.position.y=floor;camera.lookAt(controls.target);}
-  weather.update(time,now);water.update(time);terrain.update(time);renderer.render(scene,camera);frame++;
-  if(frame===3){document.querySelector('#loading').classList.add('done');canvas.dataset.ready='true';console.info(`Skógafoss ready: ${renderer.info.render.triangles} triangles, ${renderer.info.render.calls} draw calls, ${quality} quality`);}
+  sceneTime.value=time;weather.update(now);
+  if(!paused){accumulator=Math.min(accumulator+dt,.05);while(accumulator>=SIMULATION_STEP){simulation.step();accumulator-=SIMULATION_STEP;}}
+  renderer.render(scene,camera);frame++;lab.frame(now);
+
+  if(frame===3){document.querySelector('#loading').classList.add('done');canvas.dataset.ready='true';console.info(`Skógafoss ready: ${renderer.info.render.triangles} triangles, ${renderer.info.render.drawCalls} draw calls, ${quality} quality`);}
 }
-init().catch(error=>{console.error(error);showError('The landscape could not load. Check your connection and use a browser with WebGL 2 and hardware acceleration enabled.');});
+init().catch(error=>{console.error(error);showError(error.message || 'The WebGPU study could not load. Try reloading or open the original scene.');});

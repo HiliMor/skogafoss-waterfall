@@ -31,6 +31,29 @@ npm run dev
 - Reduced-motion preferences start the scene paused and disable camera and weather transitions.
 - Coarse-pointer devices use fewer instances, a smaller reflection target and a lower pixel ratio.
 
+## WebGPU water study
+
+This branch adds a separate experiment at **`/webgpu.html`**. The original WebGL 2 scene remains at `/`; its About dialog links to the study. Both pages are included in the static production build. No additional packages, asset services or paid APIs are required.
+
+The study uses Three.js `WebGPURenderer` and TSL node materials for the landscape, continuous waterfall, river reflections, skies, rain and grass. Native WebGPU compute updates **24,576 particles** (12,288 on coarse-pointer devices) in resident position/velocity storage buffers. A fixed 1/120-second simulation step applies gravity, wind, terrain/water impacts, short splashes and a smaller drifting mist population. A sampled height field follows the rendered riverbed and front slope. Pause stops the simulation and all animated material clocks.
+
+Open **Water study** to adjust wind, toggle the GPU spray, read back particle state or measure six seconds of frame timing. A readback reports the falling/splash/mist populations, height range and simulation step count; it also detects uninitialized, non-finite and escaped state. It runs only on request. The normal animation loop does not read particle buffers back to the CPU.
+
+The **WebGPU active** badge is set only after the native backend initializes. If WebGPU is unavailable, initialization fails or the device is lost, the page shows an explanation and a link to the original. The compute experiment does not silently fall back to WebGL. Serve over localhost or HTTPS in a browser/device combination with WebGPU support.
+
+This is a hybrid artistic scene, **not a full fluid solver**: the main curtain is a continuous animated surface, droplets do not interact with one another, and collisions use a height field rather than the cliff/stair/rock meshes. TSL materials and reflection filtering differ from the original GLSL version, so visual parity is approximate. A WebGPU renderer alone does not guarantee better visuals or faster frames.
+
+### Experiment checks
+
+- Production scene checked in the local desktop browser with a native WebGPU backend: five viewpoints, four atmospheres, particle readback and animation controls. Narrow-screen layout also checked; actual phone hardware has not been profiled.
+- A 1280×800 Clear/Approach sample measured approximately 52 fps with spray and 56 fps with spray disabled. These short, sequential samples include the whole scene and browser scheduling; they are illustrative, not GPU timings or a controlled WebGPU-versus-WebGL benchmark.
+- `npm test` includes collision-floor/plateau exclusion, GPU readback validation, frame-timing statistics and independent camera presets, alongside the original landscape tests.
+- Shader compilation and runtime GPU state require browser verification; passing Node tests alone does not establish GPU correctness.
+
+Implementation: `src/gpu/` (renderer, TSL materials, simulation, weather and lab), shared `src/views.js` and `src/weather-presets.js`. The two HTML entry points are configured in `vite.config.js`.
+
+Technical references: [Three.js WebGPU renderer](https://threejs.org/manual/pages/webgpurenderer), [TSL](https://threejs.org/docs/pages/TSL.html) and the [official compute-particles example](https://threejs.org/examples/webgpu_compute_particles.html).
+
 ## Source files
 
 - `src/nature.js`: terrain height functions, instanced details, staircase and hikers.

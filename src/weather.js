@@ -2,12 +2,8 @@ import * as THREE from 'three';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { noiseGLSL, randomGenerator } from './nature.js';
 
-export const WEATHER = {
-  clear: { label:'Clear day', sky:'clear', rotation:2.0, skyGain:.34, skyTint:[.66,.92,1.24], sun:'#fff3e2', sunPower:2.2, sunPosition:[-90,150,100], hemi:'#b6d7ef', ground:'#465a3b', hemiPower:1, fog:'#91b1c8', density:.00032, exposure:.97, environment:.48, water:'#d6e3e6', waterLight:.85, wetness:0, wind:.25, rain:0, aurora:0, spray:.68 },
-  golden: { label:'Golden hour', sky:'golden', rotation:2.75, skyGain:.27, skyTint:[1.6,.86,.40], sun:'#ffc47f', sunPower:2.3, sunPosition:[-130,65,100], hemi:'#bbb8d7', ground:'#515b41', hemiPower:.78, fog:'#c6a8a3', density:.00042, exposure:.98, environment:.5, water:'#f9ddc6', waterLight:.85, wetness:.05, wind:.18, rain:0, aurora:0, spray:.8 },
-  storm: { label:'Passing storm', sky:'storm', rotation:.65, skyGain:.3, sun:'#abc4d8', sunPower:.3, sunPosition:[-85,140,100], hemi:'#9bb5ca', ground:'#293d37', hemiPower:.9, fog:'#798f9d', density:.0012, exposure:.95, environment:.45, water:'#b9d0dc', waterLight:.68, wetness:.92, wind:1, rain:1, aurora:0, spray:1.6 },
-  aurora: { label:'Northern lights', sky:'night', rotation:1.9, skyGain:.012, sun:'#b1cbe8', sunPower:.22, sunPosition:[-60,140,70], hemi:'#7193b5', ground:'#182b2e', hemiPower:.46, fog:'#12232f', density:.0008, exposure:.86, environment:.18, water:'#9cbacb', waterLight:.36, wetness:.12, wind:.1, rain:0, aurora:1, spray:.72 }
-};
+import { WEATHER } from './weather-presets.js';
+export { WEATHER } from './weather-presets.js';
 
 export function createWeather({ scene, renderer, camera, sun, hemi, assets, quality, reducedMotion }) {
   const state = {
