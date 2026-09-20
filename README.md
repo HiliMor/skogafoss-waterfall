@@ -1,6 +1,10 @@
 # Skógafoss — Field Notes
 
-An interactive 3D interpretation of Skógafoss, Iceland: a flowing waterfall, a reflective river, moss-covered cliffs and a broader valley and highland landscape. All views are rendered in real time and can be explored with the camera.
+An interactive WebGPU interpretation of Skógafoss, Iceland: a flowing waterfall, a reflective river, moss-covered cliffs and a broader valley and highland landscape. All views are rendered in real time and can be explored with the camera. The original WebGL2 version is included for comparison and browsers without WebGPU support.
+
+[![The WebGPU scene: Skógafoss waterfall beneath a golden sky](docs/media/skogafoss-twitter-cover.jpg)](docs/media/skogafoss-twitter.mp4)
+
+[Watch the demo](docs/media/skogafoss-twitter.mp4) · [Comparison gallery](docs/media/README.md) · [WebGPU implementation guide](docs/WEBGPU.md)
 
 ## Run
 
@@ -12,6 +16,16 @@ npm run dev
 ```
 
 `npm run build` creates `dist/`, ready for a static web host. `npm run preview` serves the production build locally. For a subdirectory deployment, pass the base path, for example `npm run build -- --base=/skogafoss-waterfall/`.
+
+The website includes both versions in one build:
+
+| URL | Experience |
+| --- | --- |
+| `/` | **WebGPU — default**, with compute-driven spray and the additional river/vegetation details. |
+| `/webgl.html` | Original WebGL2 scene. |
+| `/webgpu.html` | Compatibility redirect to the main WebGPU page; preserves query parameters and the URL fragment. |
+
+Use the version link at the top of either scene to switch. If WebGPU cannot initialize, its recovery screen also offers the WebGL2 version. For a subdirectory deployment, these URLs live under that site's base path.
 
 ## What's in the scene
 
@@ -37,7 +51,7 @@ See the [implementation guide](docs/WEBGPU.md) for architecture, controls, detai
 
 Watch the [25-second demo](docs/media/skogafoss-twitter.mp4) and browse the [comparison gallery](docs/media/README.md) for the four skies, project evolution, GPU particle layer and landscape details.
 
-This branch adds a separate experiment at **`/webgpu.html`**. The original WebGL 2 scene remains at `/`; its About dialog links to the study. Both pages are included in the static production build. No additional packages, asset services or paid APIs are required.
+The WebGPU study is the main experience at **`/`**. The original WebGL2 scene remains available at **`/webgl.html`**, with visible links between both versions. The earlier `/webgpu.html` URL redirects to the main page. Both scenes and the redirect are included in the static production build. No additional packages, asset services or paid APIs are required.
 
 The study uses Three.js `WebGPURenderer` and TSL node materials for the landscape, continuous waterfall, river reflections, skies, rain and grass. Native WebGPU compute updates **24,576 particles** (12,288 on coarse-pointer devices) in resident position/velocity storage buffers. A fixed 1/120-second simulation step applies gravity, wind, terrain/water impacts, short splashes and a smaller drifting mist population. A sampled height field follows the rendered riverbed and front slope. Pause stops the simulation and all animated material clocks.
 
@@ -59,7 +73,7 @@ The WebGPU version adds partially submerged river boulders, clustered bank stone
 - `npm test` includes collision-floor/plateau exclusion, GPU readback validation, frame-timing statistics and independent camera presets, grounded detail placement, stair clearance and wake alignment, alongside the original landscape tests.
 - Shader compilation and runtime GPU state require browser verification; passing Node tests alone does not establish GPU correctness.
 
-Implementation: `src/gpu/` (renderer, TSL materials, simulation, weather and lab), shared `src/views.js` and `src/weather-presets.js`. The two HTML entry points are configured in `vite.config.js`.
+Implementation: `src/gpu/` (renderer, TSL materials, simulation, weather and lab), shared `src/views.js` and `src/weather-presets.js`. The main page, original scene and compatibility redirect are configured in `vite.config.js`.
 
 Technical references: [Three.js WebGPU renderer](https://threejs.org/manual/pages/webgpurenderer), [TSL](https://threejs.org/docs/pages/TSL.html) and the [official compute-particles example](https://threejs.org/examples/webgpu_compute_particles.html).
 
@@ -83,6 +97,6 @@ Approximate waterfall dimensions: 60 m high and 25 m wide, referenced from [Visi
 
 This is an artistic reconstruction, not surveyed terrain or photogrammetry. Rock positions, the winding rivers, wider topography, stairs and camera framing are composed approximations. The CC0 photographic materials are general rock and vegetation samples, not location-specific scans. The four atmospheres are artistic presets, not live meteorological conditions or a physical weather forecast. This is not a walking simulation.
 
-The production build and all five viewpoints were checked in the desktop browser, with a narrow viewport check for the mobile interface. Actual phone GPU performance is not yet profiled. The scene requires WebGL 2. Terrain textures and the initial overcast sky total approximately 8.8 MB. The selected 2K panorama adds roughly 5 MB; other skies load on demand and are cached for the session; no asset API key or paid service is required. Google Fonts is optional and has fallback fonts.
+The production build and all five viewpoints were checked in the desktop browser, with a narrow viewport check for the mobile interface. Actual phone GPU performance is not yet profiled. The default scene requires WebGPU; the original version requires WebGL2. Terrain textures and the initial overcast sky total approximately 8.8 MB. The selected 2K panorama adds roughly 5 MB; other skies load on demand and are cached for the session; no asset API key or paid service is required. Google Fonts is optional and has fallback fonts.
 
 Visual references for the continuous crest and unequal sheets of water: [Mr Iceland — Skógafoss](https://mriceland.is/south-coast-destinations/skogafoss/) and the close-up [Cascading Force](https://community.naturephotographers.network/t/cascading-force/46946), especially its shaded channels, torn edges and clumps of white water. Reference photographs are not bundled into the scene.

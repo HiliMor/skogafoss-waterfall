@@ -1,18 +1,19 @@
 # WebGPU water study — implementation notes
 
-The study is served at `/webgpu.html`. It extends the Skógafoss scene with native GPU particle simulation and a separate set of Three.js Shading Language (TSL) materials. The original renderer is available at `/` for comparison. Both entry points are built by Vite and use the same local photographic assets, terrain, cameras and weather presets.
+The WebGPU study is the default page at `/`. It extends the Skógafoss scene with native GPU particle simulation and a separate set of Three.js Shading Language (TSL) materials. The original renderer is available at `/webgl.html` for comparison, with a visible version link in each page's header. The old `/webgpu.html` link redirects to `/`, preserving its query parameters and URL fragment. Both scenes and the compatibility redirect are built by Vite; both scenes use the same local photographic assets, terrain, cameras and weather presets. Links remain within the deployment base path when hosted in a subdirectory.
 
 ## Run and compare
 
 ```sh
 npm ci
 npm run dev
-# Open http://127.0.0.1:5173/webgpu.html
+# Open http://127.0.0.1:5173/ for WebGPU
+# Open http://127.0.0.1:5173/webgl.html for the original
 
 npm test
 npm run build
 npm run preview
-# Open the preview URL printed by Vite, then /webgpu.html
+# Open the preview URL printed by Vite for the default WebGPU scene
 ```
 
 Use localhost or HTTPS. The **WebGPU active** badge means the native WebGPU backend initialized; the experiment rejects Three.js's automatic WebGL fallback because its compute path requires WebGPU. A missing adapter, failed initialization or lost device produces a recovery screen linking to the original scene. An embedded browser may defer adapter creation in an inactive tab; open the tab in the foreground and retry.
@@ -27,7 +28,7 @@ In **Water study**:
 | Wind strength | Multiply the particle simulation's weather-driven wind by 0–4. It does not change the selected sky or simulate a new weather system. |
 | Check GPU state | Copy the position and velocity buffers back once and report live populations, height range and simulation steps. |
 | Measure 6s | Record whole-scene frame intervals, mean FPS, median and p95. Keep the camera, weather and window size unchanged. |
-| Original scene | Open the original WebGL 2 renderer. |
+| Original WebGL2 | Open the original renderer at `/webgl.html`. |
 
 The readback validates finite values, plausible bounds, recognized phases and a nonzero height distribution. Two checks while paused should report the same populations and simulation step count. Readback is deliberately outside the animation loop.
 

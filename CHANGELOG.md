@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-20 — WebGPU as the main experience
+
+- Made the enhanced WebGPU scene the default at `/`, retaining the original WebGL2 scene at `/webgl.html`.
+- Added visible links between both versions and updated the WebGPU recovery screen to open WebGL2.
+- Kept `/webgpu.html` as a compatibility redirect, preserving query parameters, fragments and the deployment base path.
+- Added the WebGPU demo cover to the repository overview; included the comparison gallery, MP4 and cover image in `docs/media/`.
+
 ## 2026-09-20 — WebGPU landscape details
 
 On branch `codex/webgpu-water-study`:
