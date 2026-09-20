@@ -10,7 +10,7 @@ export async function loadLandscapeAssets(renderer, onProgress) {
     ['color', 'normal', 'arm'].map(async kind => {
       const texture = await loader.loadAsync(`${import.meta.env.BASE_URL}textures/${name}-${kind}.jpg`);
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-      texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      texture.anisotropy = Math.min(8, renderer.getMaxAnisotropy?.() ?? renderer.capabilities.getMaxAnisotropy());
       if (kind === 'color') texture.colorSpace = THREE.SRGBColorSpace;
       assets[`${name}-${kind}`] = texture;
       onProgress(++loaded, 10);

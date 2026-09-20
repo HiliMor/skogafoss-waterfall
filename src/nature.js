@@ -87,8 +87,8 @@ export function surfaceHeightAt(g, x, z) {
 // Concentrate tessellation around the waterfall while extending the horizon.
 const spread = (u, extent, power = 1.65) => Math.sign(u - .5) * Math.abs(2 * u - 1) ** power * extent;
 
-export function createTerrain(scene, quality, assets, weather) {
-  const rand = randomGenerator(1909), mat = terrainMaterial(assets, false, weather), gravelMat = terrainMaterial(assets, true, weather);
+export function createTerrain(scene, quality, assets, weather, materialFactory = terrainMaterial) {
+  const rand = randomGenerator(1909), mat = materialFactory(assets, false, weather), gravelMat = materialFactory(assets, true, weather);
   const add = (geometry, material, shadow = false) => {
     const mesh = new THREE.Mesh(geometry, material); mesh.receiveShadow = true; mesh.castShadow = shadow; scene.add(mesh); return mesh;
   };
@@ -196,7 +196,7 @@ export function createTerrain(scene, quality, assets, weather) {
     dummy.position.set(x, renderedHeight(x,z) - .08, z); dummy.scale.setScalar(.3 + rand() * .65); dummy.rotation.set(0, rand() * 6.28, 0); dummy.updateMatrix(); grass.setMatrixAt(i, dummy.matrix);
     grass.setColorAt(i, new THREE.Color().setHSL(.18 + rand() * .05, .21 + rand() * .22, .43 + rand() * .2));
   }
-  grass.receiveShadow = true; scene.add(grass);
+  grass.name='Wind-swept grass'; grass.receiveShadow = true; scene.add(grass);
   createStairs(scene); createHikers(scene,renderedHeight);
   return { cliff: cliffMesh, rockCount: rockCount + pebbles.count, surfaces:terrainMeshes, update(t) { wind.value = t; } };
 }
