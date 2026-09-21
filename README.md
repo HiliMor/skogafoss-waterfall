@@ -4,7 +4,7 @@ An interactive WebGPU interpretation of Skógafoss, Iceland: a flowing waterfall
 
 [![The WebGPU scene: Skógafoss waterfall beneath a golden sky](docs/media/skogafoss-twitter-cover.jpg)](docs/media/skogafoss-twitter.mp4)
 
-[Watch the demo](docs/media/skogafoss-twitter.mp4) · [Comparison gallery](docs/media/README.md) · [WebGPU implementation guide](docs/WEBGPU.md)
+[Live demo](https://hilimor.github.io/skogafoss-waterfall/) · [Watch the demo](docs/media/skogafoss-twitter.mp4) · [Comparison gallery](docs/media/README.md) · [WebGPU implementation guide](docs/WEBGPU.md)
 
 ## Run
 
@@ -15,7 +15,7 @@ npm ci
 npm run dev
 ```
 
-`npm run build` creates `dist/`, ready for a static web host. `npm run preview` serves the production build locally. For a subdirectory deployment, pass the base path, for example `npm run build -- --base=/skogafoss-waterfall/`.
+`npm run build` creates `dist/`, ready for a static web host. `npm run preview` serves the production build locally. The `main` branch deploys automatically to the [live GitHub Pages demo](https://hilimor.github.io/skogafoss-waterfall/) through GitHub Actions.
 
 The website includes both versions in one build:
 
